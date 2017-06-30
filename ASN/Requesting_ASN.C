@@ -103,7 +103,6 @@ main(int na, char *arg[])
         }
         fclose(fout);
 	system("cat requesting_email | mail -s 'Requesting Data' breq_fast@iris.washington.edu");
-        //system("cat requesting_email | mail -s 'Requesting Data' -r lili.feng@colorado.edu");
         cout<<"Request of "<<month_name[month]<<" "<<day<<"th "<<year<<" sent..."<<endl;
        }
     }
