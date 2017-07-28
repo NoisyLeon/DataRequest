@@ -49,7 +49,7 @@ for i in xrange(data2.size):
         if i-N+j < 0: print 'ERROR'
         if i-N+j > data2.size: print 'ERROR'
         W += np.abs(data2[i-N+j])
-    print i, data2.size
+    # print i, data2.size
     data3[i] = data2[i]/W*(2*N+1)
 
 # 
@@ -63,20 +63,23 @@ plt.plot(time, data2, 'k', lw=2)
 plt.xlim([1000, 7200])
 ax.tick_params(axis='x', labelsize=20)
 ax.tick_params(axis='y', labelsize=20)
+ax.yaxis.set_major_formatter(plt.NullFormatter())
 ax = fig.add_subplot(312)
 # fig, ax = plt.subplots(312)
 plt.plot(time, data1, 'k', lw=2)
 # plt.xlabel( 'Time (sec)', fontsize=30)
 ax.tick_params(axis='x', labelsize=20)
 ax.tick_params(axis='y', labelsize=20)
+ax.yaxis.set_major_formatter(plt.NullFormatter())
 plt.xlim([1000, 7200])
-plt.ylim([-1.2, 1.2])
+plt.ylim([-1.5, 1.5])
 ax = fig.add_subplot(313)
 # fig, ax = plt.subplots(313)
 plt.plot(time, data3, 'k', lw=2)
 plt.xlabel( 'Time (sec)', fontsize=30)
 ax.tick_params(axis='x', labelsize=20)
 ax.tick_params(axis='y', labelsize=20)
+ax.yaxis.set_major_formatter(plt.NullFormatter())
 plt.xlim([1000, 7200])
 plt.show()
 

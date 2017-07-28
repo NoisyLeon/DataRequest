@@ -145,14 +145,14 @@ class obspyDMTASDF(pyasdf.ASDFDataSet):
                                 geographic point defined by the latitude and longitude parameters.
         =======================================================================================================
         """
-        try: starttime=obspy.core.utcdatetime.UTCDateTime(startdate)
-        except: starttime=None
-        try: endtime=obspy.core.utcdatetime.UTCDateTime(enddate)
-        except: endtime=None
-        client=Client('IRIS')
-        inv = client.get_stations(network=network, station=station, starttime=starttime, endtime=endtime, channel=channel, 
-            minlatitude=minlatitude, maxlatitude=maxlatitude, minlongitude=minlongitude, maxlongitude=maxlongitude,
-            latitude=latitude, longitude=longitude, minradius=minradius, maxradius=maxradius, level='channel')
+        try: starttime      = obspy.core.utcdatetime.UTCDateTime(startdate)
+        except: starttime   = None
+        try: endtime        = obspy.core.utcdatetime.UTCDateTime(enddate)
+        except: endtime     = None
+        client  = Client('IRIS')
+        inv     = client.get_stations(network=network, station=station, starttime=starttime, endtime=endtime, channel=channel, 
+                    minlatitude=minlatitude, maxlatitude=maxlatitude, minlongitude=minlongitude, maxlongitude=maxlongitude,
+                        latitude=latitude, longitude=longitude, minradius=minradius, maxradius=maxradius, level='channel')
         self.add_stationxml(inv)
         try: self.inv       += inv
         except: self.inv    = inv
