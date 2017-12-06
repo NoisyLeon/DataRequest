@@ -10,6 +10,8 @@ import numpy as np
 
 mondict = {1: 'JAN', 2: 'FEB', 3: 'MAR', 4: 'APR', 5: 'MAY', 6: 'JUN', 7: 'JUL', 8: 'AUG', 9: 'SEP', 10: 'OCT', 11: 'NOV', 12: 'DEC'}
 
+
+
 class browseASDF(pyasdf.ASDFDataSet):
     
     def get_limits_lonlat(self):
@@ -32,7 +34,7 @@ class browseASDF(pyasdf.ASDFDataSet):
         self.minlat=minlat; self.maxlat=maxlat; self.minlon=minlon; self.maxlon=maxlon
         return
     
-    def get_stations(self, startdate=None, enddate=None,  network=None, station=None, location=None, channel=None,
+    def get_stations(self, startdate=None, enddate=None,  network=None, station=None, location=None, channel=None, includerestricted=False,
             minlatitude=None, maxlatitude=None, minlongitude=None, maxlongitude=None, latitude=None, longitude=None, minradius=None, maxradius=None):
         """Get station inventory from IRIS server
         =======================================================================================================
@@ -48,7 +50,8 @@ class browseASDF(pyasdf.ASDFDataSet):
                                 As a special case ?--? (two dashes) will be translated to a string of two space
                                 characters to match blank location IDs.
         channel             - Select one or more SEED channel codes.
-                                Multiple codes are comma-separated (e.g. "BHZ,HHZ").             
+                                Multiple codes are comma-separated (e.g. "BHZ,HHZ").
+        includerestricted   - default is False
         minlatitude         - Limit to events with a latitude larger than the specified minimum.
         maxlatitude         - Limit to events with a latitude smaller than the specified maximum.
         minlongitude        - Limit to events with a longitude larger than the specified minimum.
@@ -72,7 +75,7 @@ class browseASDF(pyasdf.ASDFDataSet):
         client          = Client('IRIS')
         inv             = client.get_stations(network=network, station=station, starttime=starttime, endtime=endtime, channel=channel, 
                             minlatitude=minlatitude, maxlatitude=maxlatitude, minlongitude=minlongitude, maxlongitude=maxlongitude,
-                                latitude=latitude, longitude=longitude, minradius=minradius, maxradius=maxradius, level='channel')
+                                latitude=latitude, longitude=longitude, minradius=minradius, maxradius=maxradius, level='channel', includerestricted=includerestricted)
         self.add_stationxml(inv)
         try:
             self.inv    += inv
@@ -153,3 +156,48 @@ class browseASDF(pyasdf.ASDFDataSet):
         if showfig:
             plt.show()
         return
+    
+    def write_inv(self, outfname, format='stationxml'):
+        self.inv.write(outfname, format=format)
+        return
+    
+    def read_inv(self, infname):
+        self.inv    = obspy.core.inventory.inventory.read_inventory(infname)
+        return
+    
+    def check_access(self):
+        for net in self.inv:
+            for sta in net:
+                if sta.restricted_status != 'open':
+                    print sta
+        return
+    
+    def get_date(self):
+        start_date  =  obspy.UTCDateTime('2599-12-31T23:59:59.000000Z')
+        end_date    =  obspy.UTCDateTime(0)
+        for net in self.inv:
+            for sta in net:
+                if sta.start_date < start_date:
+                    start_date      = sta.start_date
+                    self.sta_start  = sta
+                    
+                if sta.end_date > end_date:
+                    end_date    = sta.end_date
+                    self.sta_end= sta
+        self.start_date = start_date
+        self.end_date   = end_date
+        
+    def write_txt(self, outfname):
+        with open(outfname, 'w') as fid:
+            for staid in self.waveforms.list():
+                temp    = staid.split('.')
+                network = temp[0]
+                stacode = temp[1]
+                fid.writelines(stacode+' '+network+'\n')
+        return
+            
+        
+        
+        
+    
+    
