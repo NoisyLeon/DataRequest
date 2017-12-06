@@ -102,6 +102,7 @@ main(int na, char *arg[])
            for(i=0;i<nch;i++) fprintf(fout,"%s %s %s %s\n", station, net, intemp, ch[i]);
         }
         fclose(fout);
+        
 	system("cat requesting_email | mail -s 'Requesting Data' breq_fast@iris.washington.edu");
         cout<<"Request of "<<month_name[month]<<" "<<day<<"th "<<year<<" sent..."<<endl;
        }

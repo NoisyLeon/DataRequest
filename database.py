@@ -14,7 +14,6 @@ mondict = {1: 'JAN', 2: 'FEB', 3: 'MAR', 4: 'APR', 5: 'MAY', 6: 'JUN', 7: 'JUL',
 class obspyDMTASDF(pyasdf.ASDFDataSet):
     """ An object to for downloaded data manipulation based on ASDF database
     """
-    
     def get_station_data(self, datadir):
         commandfname    = datadir+'/EVENTS-INFO/catalog_info.txt'
         with open(commandfname, 'rb') as f:
