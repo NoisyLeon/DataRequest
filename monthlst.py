@@ -1,9 +1,9 @@
 import obspy
 
-start_date  ='20110101'
-end_date    ='20170601'
+start_date  ='20170601'
+end_date    ='20180101'
 
-outfname    = 'ASN/Alaska_month_2011_2017_6.lst'
+outfname    = 'ASN/Alaska_month_2017_6_2018_1.lst'
 stime       = obspy.UTCDateTime(start_date)
 etime       = obspy.UTCDateTime(end_date)
 
