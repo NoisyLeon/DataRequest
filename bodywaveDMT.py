@@ -127,9 +127,19 @@ class DMTASDF(pyasdf.ASDFDataSet):
                         invfnameE   = respdir+'/STXML.'+netcode+'.'+stacode + '.10.BHE'
                         invfnameN   = respdir+'/STXML.'+netcode+'.'+stacode + '.10.BHN'
                         if not (os.path.isfile(fnameZ) and os.path.isfile(fnameE) and os.path.isfile(fnameN)):
-                            if verbose:
-                                print('No data for: '+staid)
-                            continue
+                            fnameZ      = rawdir+'/'+netcode+'.'+stacode + '.01.BHZ'
+                            fnameE      = rawdir+'/'+netcode+'.'+stacode + '.01.BHE'
+                            fnameN      = rawdir+'/'+netcode+'.'+stacode + '.01.BHN'
+                            outfnameZ   = outdir+'/'+netcode+'.'+stacode+'.01.BHZ'
+                            outfnameE   = outdir+'/'+netcode+'.'+stacode+'.01.BHE'
+                            outfnameN   = outdir+'/'+netcode+'.'+stacode+'.01.BHN'
+                            invfnameZ   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHZ'
+                            invfnameE   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHE'
+                            invfnameN   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHN'
+                            if not (os.path.isfile(fnameZ) and os.path.isfile(fnameE) and os.path.isfile(fnameN)):
+                                if verbose:
+                                    print('No data for: '+staid)
+                                continue
                 if not (os.path.isfile(invfnameZ) and os.path.isfile(invfnameE) and os.path.isfile(invfnameN)):
                     if verbose:
                         print('No resp for: '+staid)
@@ -305,9 +315,19 @@ class DMTASDF(pyasdf.ASDFDataSet):
                         invfnameE   = respdir+'/STXML.'+netcode+'.'+stacode + '.10.BHE'
                         invfnameN   = respdir+'/STXML.'+netcode+'.'+stacode + '.10.BHN'
                         if not (os.path.isfile(fnameZ) and os.path.isfile(fnameE) and os.path.isfile(fnameN)):
-                            if verbose:
-                                print('No data for: '+staid)
-                            continue
+                            fnameZ      = rawdir+'/'+netcode+'.'+stacode + '.01.BHZ'
+                            fnameE      = rawdir+'/'+netcode+'.'+stacode + '.01.BHE'
+                            fnameN      = rawdir+'/'+netcode+'.'+stacode + '.01.BHN'
+                            outfnameZ   = outdir+'/'+netcode+'.'+stacode+'.01.BHZ'
+                            outfnameE   = outdir+'/'+netcode+'.'+stacode+'.01.BHE'
+                            outfnameN   = outdir+'/'+netcode+'.'+stacode+'.01.BHN'
+                            invfnameZ   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHZ'
+                            invfnameE   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHE'
+                            invfnameN   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHN'
+                            if not (os.path.isfile(fnameZ) and os.path.isfile(fnameE) and os.path.isfile(fnameN)):
+                                if verbose:
+                                    print('No data for: '+staid)
+                                continue
                 if not (os.path.isfile(invfnameZ) and os.path.isfile(invfnameE) and os.path.isfile(invfnameN)):
                     if verbose:
                         print('No resp for: '+staid)
@@ -410,9 +430,19 @@ def remove_resp_glob4mp(subdir, stalst, verbose, fs):
                 invfnameE   = respdir+'/STXML.'+netcode+'.'+stacode + '.10.BHE'
                 invfnameN   = respdir+'/STXML.'+netcode+'.'+stacode + '.10.BHN'
                 if not (os.path.isfile(fnameZ) and os.path.isfile(fnameE) and os.path.isfile(fnameN)):
-                    if verbose:
-                        print('No data for: '+staid)
-                    continue
+                    fnameZ      = rawdir+'/'+netcode+'.'+stacode + '.01.BHZ'
+                    fnameE      = rawdir+'/'+netcode+'.'+stacode + '.01.BHE'
+                    fnameN      = rawdir+'/'+netcode+'.'+stacode + '.01.BHN'
+                    outfnameZ   = outdir+'/'+netcode+'.'+stacode+'.01.BHZ'
+                    outfnameE   = outdir+'/'+netcode+'.'+stacode+'.01.BHE'
+                    outfnameN   = outdir+'/'+netcode+'.'+stacode+'.01.BHN'
+                    invfnameZ   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHZ'
+                    invfnameE   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHE'
+                    invfnameN   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHN'
+                    if not (os.path.isfile(fnameZ) and os.path.isfile(fnameE) and os.path.isfile(fnameN)):
+                        if verbose:
+                            print('No data for: '+staid)
+                        continue
         if not (os.path.isfile(invfnameZ) and os.path.isfile(invfnameE) and os.path.isfile(invfnameN)):
             if verbose:
                 print('No resp for: '+staid)
@@ -504,7 +534,17 @@ def remove_resp_cat4mp(event, datadir, stalst, stime4resp, etime4resp, rotation,
                 invfnameE   = respdir+'/STXML.'+netcode+'.'+stacode + '.10.BHE'
                 invfnameN   = respdir+'/STXML.'+netcode+'.'+stacode + '.10.BHN'
                 if not (os.path.isfile(fnameZ) and os.path.isfile(fnameE) and os.path.isfile(fnameN)):
-                    continue
+                    fnameZ      = rawdir+'/'+netcode+'.'+stacode + '.01.BHZ'
+                    fnameE      = rawdir+'/'+netcode+'.'+stacode + '.01.BHE'
+                    fnameN      = rawdir+'/'+netcode+'.'+stacode + '.01.BHN'
+                    outfnameZ   = outdir+'/'+netcode+'.'+stacode+'.01.BHZ'
+                    outfnameE   = outdir+'/'+netcode+'.'+stacode+'.01.BHE'
+                    outfnameN   = outdir+'/'+netcode+'.'+stacode+'.01.BHN'
+                    invfnameZ   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHZ'
+                    invfnameE   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHE'
+                    invfnameN   = respdir+'/STXML.'+netcode+'.'+stacode + '.01.BHN'
+                    if not (os.path.isfile(fnameZ) and os.path.isfile(fnameE) and os.path.isfile(fnameN)):
+                        continue
         if not (os.path.isfile(invfnameZ) and os.path.isfile(invfnameE) and os.path.isfile(invfnameN)):
             continue
         # read data
