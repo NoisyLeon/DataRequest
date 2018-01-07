@@ -68,6 +68,9 @@ class DMTASDF(pyasdf.ASDFDataSet):
             etime4resp  = obspy.core.utcdatetime.UTCDateTime(enddate)
         except:
             etime4resp  = obspy.UTCDateTime()
+        errordir    = datadir+'/error_dir'
+        if not os.path.isdir(errordir):
+            os.makedirs(errordir)
         for event in self.cat:
             event_id        = event.resource_id.id.split('=')[-1]
             pmag            = event.preferred_magnitude()
@@ -179,18 +182,26 @@ class DMTASDF(pyasdf.ASDFDataSet):
                     try:
                         st.rotate('NE->RT', back_azimuth=baz)
                     except ValueError:
-                        stime4trim  = obspy.UTCDateTime(0)
-                        etime4trim  = obspy.UTCDateTime()
-                        for tr in st:
-                            if stime4trim < tr.stats.starttime:
-                                stime4trim  = tr.stats.starttime
-                            if etime4trim > tr.stats.endtime:
-                                etime4trim  = tr.stats.endtime
-                        if stime4trim>etime4trim:
-                            print('wrong timestamp: '+ staid)
+                        try:
+                            stime4trim  = obspy.UTCDateTime(0)
+                            etime4trim  = obspy.UTCDateTime()
+                            for tr in st:
+                                if stime4trim < tr.stats.starttime:
+                                    stime4trim  = tr.stats.starttime
+                                if etime4trim > tr.stats.endtime:
+                                    etime4trim  = tr.stats.endtime
+                            if stime4trim>etime4trim:
+                                print('wrong timestamp: '+ staid)
+                                continue
+                            st.trim(starttime=stime4trim, endtime=etime4trim)
+                            st.rotate('NE->RT', back_azimuth=baz)
+                        except ValueError:
+                            errordir    = datadir+'/error_dir'
+                            errorfile   = errordir+'/%d%02d%02d_%02d%02d%02d.log' \
+                                %(otime.year, otime.month, otime.day, otime.hour, otime.minute, otime.second)
+                            with open(errorfile, 'a') as fid:
+                                fid.writelines(staid+'\n')
                             continue
-                        st.trim(starttime=stime4trim, endtime=etime4trim)
-                        st.rotate('NE->RT', back_azimuth=baz)
                     tr                  = st.select(channel='BHZ')[0]
                     tr.write(outfnameZ, format='mseed')
                     fnamepfx            = outfnameZ[:-1]
@@ -205,6 +216,7 @@ class DMTASDF(pyasdf.ASDFDataSet):
                 outstr  += ' '
             print(str(Ndata)+' data streams are resp removed!')
             print('STATION CODE: '+outstr)
+            print('-----------------------------------------------------------------------------------------------------------')
         return
     
     def remove_resp_catalog_mp(self, datadir, verbose=False, fs=40., startdate=None, enddate=None, rotation=True, saveEN=True,\
