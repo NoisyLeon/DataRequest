@@ -162,8 +162,16 @@ class DMTASDF(pyasdf.ASDFDataSet):
                 st.attach_response(inv)
                 pre_filt            = (0.04, 0.05, 20., 25.)
                 st.detrend()
-                st.remove_response(pre_filt=pre_filt, taper_fraction=0.1)
-                st.resample(sampling_rate=fs)
+                try:
+                    st.remove_response(pre_filt=pre_filt, taper_fraction=0.1)
+                    st.resample(sampling_rate=fs)
+                except ValueError:
+                    errordir    = datadir+'/error_dir'
+                    errorfile   = errordir+'/%d%02d%02d_%02d%02d%02d.log' \
+                        %(otime.year, otime.month, otime.day, otime.hour, otime.minute, otime.second)
+                    with open(errorfile, 'a') as fid:
+                        fid.writelines(staid+'\n')
+                    continue
                 # save data
                 if not rotation or saveEN:
                     tr                  = st.select(channel='BHZ')[0]
