@@ -34,7 +34,8 @@ class browseASDF(pyasdf.ASDFDataSet):
         self.minlat=minlat; self.maxlat=maxlat; self.minlon=minlon; self.maxlon=maxlon
         return
     
-    def get_stations(self, startdate=None, enddate=None,  network=None, station=None, location=None, channel=None, includerestricted=False,
+    def get_stations(self, startdate=None, enddate=None,  startbefore=None, startafter=None, endbefore=None, endafter=None,\
+            network=None, station=None, location=None, channel=None, includerestricted=False,\
             minlatitude=None, maxlatitude=None, minlongitude=None, maxlongitude=None, latitude=None, longitude=None, minradius=None, maxradius=None):
         """Get station inventory from IRIS server
         =======================================================================================================
@@ -72,10 +73,27 @@ class browseASDF(pyasdf.ASDFDataSet):
             endtime     = obspy.core.utcdatetime.UTCDateTime(enddate)
         except:
             endtime     = None
+        try:
+            startbefore = obspy.core.utcdatetime.UTCDateTime(startbefore)
+        except:
+            startbefore = None
+        try:
+            startafter  = obspy.core.utcdatetime.UTCDateTime(startafter)
+        except:
+            startafter  = None
+        try:
+            endbefore   = obspy.core.utcdatetime.UTCDateTime(endbefore)
+        except:
+            endbefore   = None
+        try:
+            endafter    = obspy.core.utcdatetime.UTCDateTime(endafter)
+        except:
+            endafter    = None
         client          = Client('IRIS')
-        inv             = client.get_stations(network=network, station=station, starttime=starttime, endtime=endtime, channel=channel, 
-                            minlatitude=minlatitude, maxlatitude=maxlatitude, minlongitude=minlongitude, maxlongitude=maxlongitude,
-                                latitude=latitude, longitude=longitude, minradius=minradius, maxradius=maxradius, level='channel', includerestricted=includerestricted)
+        inv             = client.get_stations(network=network, station=station, starttime=starttime, endtime=endtime, startbefore=startbefore, startafter=startafter,\
+                                endbefore=endbefore, endafter=endafter, channel=channel, minlatitude=minlatitude, maxlatitude=maxlatitude, \
+                                minlongitude=minlongitude, maxlongitude=maxlongitude, latitude=latitude, longitude=longitude, minradius=minradius, \
+                                    maxradius=maxradius, level='channel', includerestricted=includerestricted)
         self.add_stationxml(inv)
         try:
             self.inv    += inv

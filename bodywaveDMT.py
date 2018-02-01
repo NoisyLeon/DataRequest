@@ -91,6 +91,7 @@ class DMTASDF(pyasdf.ASDFDataSet):
             Ndata           = 0
             outstr          = ''
             outdir          = subdir+'/processed'
+            continue
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
             respdir         = subdir+'/resp'
