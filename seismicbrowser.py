@@ -135,7 +135,7 @@ class browseASDF(pyasdf.ASDFDataSet):
             m               = Basemap(width = distEW, height=distNS, rsphere=(6378137.00,6356752.3142), resolution='l', projection='lcc',\
                                 lat_1=minlat, lat_2=maxlat, lon_0=lon_centre, lat_0=lat_centre+1)
             m.drawparallels(np.arange(-80.0,80.0,10.0), linewidth=1, dashes=[2,2], labels=[1,1,0,0], fontsize=15)
-            m.drawmeridians(np.arange(-170.0,170.0,10.0), linewidth=1, dashes=[2,2], labels=[0,0,1,0], fontsize=15)
+            m.drawmeridians(np.arange(-170.0,170.0,10.0), linewidth=1, dashes=[2,2], labels=[0,0,1,1], fontsize=15)
         m.drawcoastlines(linewidth=1.0)
         m.drawcountries(linewidth=1.)
         # m.fillcontinents(lake_color='#99ffff',zorder=0.2)
@@ -167,10 +167,67 @@ class browseASDF(pyasdf.ASDFDataSet):
         # m.warpimage(image='etopo1')
         # m.warpimage(image='https://www.ngdc.noaa.gov/mgg/image/color_etopo1_ice_low.jpg')
         # m.shadedrelief()
-        m.etopo()
+        # m.etopo()
         stax, stay          = m(stalons, stalats)
-        m.plot(stax, stay, '^', markersize=3)
+        m.plot(stax, stay, 'r^', markersize=10)
         # plt.title(str(self.period)+' sec', fontsize=20)
+        if showfig:
+            plt.show()
+        return
+    
+    def plot_inv(self, projection='lambert', geopolygons=None, showfig=True, blon=1, blat=1, plotetopo=True):
+        """Plot station map
+        ==============================================================================
+        Input Parameters:
+        projection      - type of geographical projection
+        geopolygons     - geological polygons for plotting
+        blon, blat      - extending boundaries in longitude/latitude
+        showfig         - show figure or not
+        ==============================================================================
+        """
+        inv     = self.inv
+        m       = self._get_basemap(projection=projection, geopolygons=geopolygons, blon=blon, blat=blat)
+        if plotetopo:
+            from netCDF4 import Dataset
+            from matplotlib.colors import LightSource
+            import pycpt
+            etopodata   = Dataset('/projects/life9360/station_map/grd_dir/ETOPO2v2g_f4.nc')
+            etopo       = etopodata.variables['z'][:]
+            lons        = etopodata.variables['x'][:]
+            lats        = etopodata.variables['y'][:]
+            ls          = LightSource(azdeg=315, altdeg=45)
+            # nx          = int((m.xmax-m.xmin)/40000.)+1; ny = int((m.ymax-m.ymin)/40000.)+1
+            etopo,lons  = shiftgrid(180.,etopo,lons,start=False)
+            # topodat,x,y = m.transform_scalar(etopo,lons,lats,nx,ny,returnxy=True)
+            ny, nx      = etopo.shape
+            topodat,xtopo,ytopo = m.transform_scalar(etopo,lons,lats,nx, ny, returnxy=True)
+            m.imshow(ls.hillshade(topodat, vert_exag=1., dx=1., dy=1.), cmap='gray')
+            mycm1=pycpt.load.gmtColormap('/projects/life9360/station_map/etopo1.cpt')
+            mycm2=pycpt.load.gmtColormap('/projects/life9360/station_map/bathy1.cpt')
+            mycm2.set_over('w',0)
+            m.imshow(ls.shade(topodat, cmap=mycm1, vert_exag=1., dx=1., dy=1., vmin=0, vmax=8000))
+            m.imshow(ls.shade(topodat, cmap=mycm2, vert_exag=1., dx=1., dy=1., vmin=-11000, vmax=-0.5))
+        inet    = 0
+        for network in inv:
+            stalons     = np.array([])
+            stalats     = np.array([])
+            inet        += 1
+            for station in network:
+                stalons         = np.append(stalons, station.longitude)
+                stalats         = np.append(stalats, station.latitude)
+            stax, stay      = m(stalons, stalats)
+            if inet == 1:
+                m.plot(stax, stay, 'r^', mec='k', markersize=10, label = network.code)
+            if inet == 2:
+                m.plot(stax, stay, 'b^', mec='k', markersize=10, label = network.code)
+            # if inet<=10:
+            #     m.plot(stax, stay, '^', mec='k', markersize=10, label = network.code)
+            # elif inet > 10 and inet <=20:
+            #     m.plot(stax, stay, 's', mec='k', markersize=10, label = network.code)
+            # elif inet > 20:
+            #     m.plot(stax, stay, 'v', mec='k', markersize=10, label = network.code)
+        # plt.title(str(self.period)+' sec', fontsize=20)
+        plt.legend(numpoints=1)
         if showfig:
             plt.show()
         return
