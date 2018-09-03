@@ -175,7 +175,7 @@ class browseASDF(pyasdf.ASDFDataSet):
             plt.show()
         return
     
-    def plot_inv(self, projection='lambert', geopolygons=None, showfig=True, blon=1, blat=1, plotetopo=True):
+    def plot_inv(self, projection='lambert', geopolygons=None, showfig=True, blon=1, blat=1, plotetopo=True, stacode=None):
         """Plot station map
         ==============================================================================
         Input Parameters:
@@ -202,24 +202,32 @@ class browseASDF(pyasdf.ASDFDataSet):
             ny, nx      = etopo.shape
             topodat,xtopo,ytopo = m.transform_scalar(etopo,lons,lats,nx, ny, returnxy=True)
             m.imshow(ls.hillshade(topodat, vert_exag=1., dx=1., dy=1.), cmap='gray')
-            mycm1=pycpt.load.gmtColormap('/projects/life9360/station_map/etopo1.cpt')
-            mycm2=pycpt.load.gmtColormap('/projects/life9360/station_map/bathy1.cpt')
+            mycm1       = pycpt.load.gmtColormap('/projects/life9360/station_map/etopo1.cpt')
+            mycm2       = pycpt.load.gmtColormap('/projects/life9360/station_map/bathy1.cpt')
             mycm2.set_over('w',0)
             m.imshow(ls.shade(topodat, cmap=mycm1, vert_exag=1., dx=1., dy=1., vmin=0, vmax=8000))
             m.imshow(ls.shade(topodat, cmap=mycm2, vert_exag=1., dx=1., dy=1., vmin=-11000, vmax=-0.5))
+            shapefname  = '/projects/life9360/geological_maps/qfaults'
+            m.readshapefile(shapefname, 'faultline', linewidth=2, color='blue')
+            shapefname  = '/projects/life9360/AKgeol_web_shp/AKStategeolarc_generalized_WGS84'
+            m.readshapefile(shapefname, 'geolarc', linewidth=1, color='blue')
         inet    = 0
         for network in inv:
             stalons     = np.array([])
             stalats     = np.array([])
             inet        += 1
             for station in network:
+                if stacode != None:
+                    if station.code != stacode: continue
                 stalons         = np.append(stalons, station.longitude)
                 stalats         = np.append(stalats, station.latitude)
             stax, stay      = m(stalons, stalats)
-            if inet == 1:
-                m.plot(stax, stay, 'r^', mec='k', markersize=10, label = network.code)
-            if inet == 2:
-                m.plot(stax, stay, 'b^', mec='k', markersize=10, label = network.code)
+            # if inet == 1:
+            #     m.plot(stax, stay, 'r^', mec='k', markersize=10, label = network.code)
+            # if inet == 2:
+            #     m.plot(stax, stay, 'b^', mec='k', markersize=10, label = network.code)
+            m.plot(stax, stay, 'r^', mec='k', markersize=20, label = network.code+'.'+stacode)
+            
             # if inet<=10:
             #     m.plot(stax, stay, '^', mec='k', markersize=10, label = network.code)
             # elif inet > 10 and inet <=20:
@@ -227,7 +235,7 @@ class browseASDF(pyasdf.ASDFDataSet):
             # elif inet > 20:
             #     m.plot(stax, stay, 'v', mec='k', markersize=10, label = network.code)
         # plt.title(str(self.period)+' sec', fontsize=20)
-        plt.legend(numpoints=1)
+        # plt.legend(numpoints=1)
         if showfig:
             plt.show()
         return
