@@ -12,3 +12,5 @@ dset    = seismicbrowser.browseASDF('ALASKA_BH.h5')
 # dset.write_inv('ALASKA_BH.xml')
 dset.read_inv('ALASKA_BH.xml')
 
+
+dset.plot_inv()

@@ -101,6 +101,105 @@ class browseASDF(pyasdf.ASDFDataSet):
             self.inv    = inv
         return
     
+    def read_TA_lst(self, infname, startdate=None, enddate=None,  startbefore=None, startafter=None, endbefore=None, endafter=None, location=None, channel=None,\
+            includerestricted=False, minlatitude=None, maxlatitude=None, minlongitude=None, maxlongitude=None, \
+            latitude=None, longitude=None, minradius=None, maxradius=None):
+        """Get station inventory from IRIS server
+        =======================================================================================================
+        Input Parameters:
+        startdate, enddata  - start/end date for searching
+        network             - Select one or more network codes.
+                                Can be SEED network codes or data center defined codes.
+                                    Multiple codes are comma-separated (e.g. "IU,TA").
+        station             - Select one or more SEED station codes.
+                                Multiple codes are comma-separated (e.g. "ANMO,PFO").
+        location            - Select one or more SEED location identifiers.
+                                Multiple identifiers are comma-separated (e.g. "00,01").
+                                As a special case ?--? (two dashes) will be translated to a string of two space
+                                characters to match blank location IDs.
+        channel             - Select one or more SEED channel codes.
+                                Multiple codes are comma-separated (e.g. "BHZ,HHZ").
+        includerestricted   - default is False
+        minlatitude         - Limit to events with a latitude larger than the specified minimum.
+        maxlatitude         - Limit to events with a latitude smaller than the specified maximum.
+        minlongitude        - Limit to events with a longitude larger than the specified minimum.
+        maxlongitude        - Limit to events with a longitude smaller than the specified maximum.
+        latitude            - Specify the latitude to be used for a radius search.
+        longitude           - Specify the longitude to the used for a radius search.
+        minradius           - Limit to events within the specified minimum number of degrees from the
+                                geographic point defined by the latitude and longitude parameters.
+        maxradius           - Limit to events within the specified maximum number of degrees from the
+                                geographic point defined by the latitude and longitude parameters.
+        =======================================================================================================
+        """
+        try:
+            starttime   = obspy.core.utcdatetime.UTCDateTime(startdate)
+        except:
+            starttime   = None
+        try:
+            endtime     = obspy.core.utcdatetime.UTCDateTime(enddate)
+        except:
+            endtime     = None
+        try:
+            startbefore = obspy.core.utcdatetime.UTCDateTime(startbefore)
+        except:
+            startbefore = None
+        try:
+            startafter  = obspy.core.utcdatetime.UTCDateTime(startafter)
+        except:
+            startafter  = None
+        try:
+            endbefore   = obspy.core.utcdatetime.UTCDateTime(endbefore)
+        except:
+            endbefore   = None
+        try:
+            endafter    = obspy.core.utcdatetime.UTCDateTime(endafter)
+        except:
+            endafter    = None
+        client          = Client('IRIS')
+        init_flag       = True
+        with open(infname, 'rb') as fio:
+            for line in fio.readlines():
+                network = line.split()[1]
+                station = line.split()[2]
+                if network == 'NET':
+                    continue
+                # print network, station
+                if init_flag:
+                    try:
+                        inv     = client.get_stations(network=network, station=station, starttime=starttime, endtime=endtime, startbefore=startbefore, startafter=startafter,\
+                                    endbefore=endbefore, endafter=endafter, channel=channel, minlatitude=minlatitude, maxlatitude=maxlatitude, \
+                                        minlongitude=minlongitude, maxlongitude=maxlongitude, latitude=latitude, longitude=longitude, minradius=minradius, \
+                                            maxradius=maxradius, level='channel', includerestricted=includerestricted)
+                    except:
+                        print 'No station inv: ', line
+                        continue
+                    init_flag   = False
+                    continue
+                try:
+                    inv     += client.get_stations(network=network, station=station, starttime=starttime, endtime=endtime, startbefore=startbefore, startafter=startafter,\
+                                endbefore=endbefore, endafter=endafter, channel=channel, minlatitude=minlatitude, maxlatitude=maxlatitude, \
+                                    minlongitude=minlongitude, maxlongitude=maxlongitude, latitude=latitude, longitude=longitude, minradius=minradius, \
+                                        maxradius=maxradius, level='channel', includerestricted=includerestricted)
+                except:
+                    # for i in xrange(10):
+                    #     try:
+                    #         inv += client.get_stations(network=network, station=station, starttime=starttime, endtime=endtime, startbefore=startbefore, startafter=startafter,\
+                    #             endbefore=endbefore, endafter=endafter, channel=channel, minlatitude=minlatitude, maxlatitude=maxlatitude, \
+                    #                 minlongitude=minlongitude, maxlongitude=maxlongitude, latitude=latitude, longitude=longitude, minradius=minradius, \
+                    #                     maxradius=maxradius, level='channel', includerestricted=includerestricted)
+                    #     except:
+                    print 'No station inv: ', line
+                    continue
+                    # if i >= 9:
+                        # print 'No station inv: ', line
+        self.add_stationxml(inv)
+        try:
+            self.inv    += inv
+        except:
+            self.inv    = inv
+        return
+    
     def _get_basemap(self, projection='lambert', geopolygons=None, resolution='i', blon=0., blat=0.):
         """Get basemap for plotting results
         """
@@ -191,7 +290,7 @@ class browseASDF(pyasdf.ASDFDataSet):
             from netCDF4 import Dataset
             from matplotlib.colors import LightSource
             import pycpt
-            etopodata   = Dataset('/projects/life9360/station_map/grd_dir/ETOPO2v2g_f4.nc')
+            etopodata   = Dataset('/home/leon/station_map/grd_dir/ETOPO2v2g_f4.nc')
             etopo       = etopodata.variables['z'][:]
             lons        = etopodata.variables['x'][:]
             lats        = etopodata.variables['y'][:]
@@ -202,40 +301,50 @@ class browseASDF(pyasdf.ASDFDataSet):
             ny, nx      = etopo.shape
             topodat,xtopo,ytopo = m.transform_scalar(etopo,lons,lats,nx, ny, returnxy=True)
             m.imshow(ls.hillshade(topodat, vert_exag=1., dx=1., dy=1.), cmap='gray')
-            mycm1       = pycpt.load.gmtColormap('/projects/life9360/station_map/etopo1.cpt')
-            mycm2       = pycpt.load.gmtColormap('/projects/life9360/station_map/bathy1.cpt')
+            mycm1       = pycpt.load.gmtColormap('/home/leon/station_map/etopo1.cpt')
+            mycm2       = pycpt.load.gmtColormap('/home/leon/station_map/bathy1.cpt')
             mycm2.set_over('w',0)
             m.imshow(ls.shade(topodat, cmap=mycm1, vert_exag=1., dx=1., dy=1., vmin=0, vmax=8000))
             m.imshow(ls.shade(topodat, cmap=mycm2, vert_exag=1., dx=1., dy=1., vmin=-11000, vmax=-0.5))
-            shapefname  = '/projects/life9360/geological_maps/qfaults'
-            m.readshapefile(shapefname, 'faultline', linewidth=2, color='blue')
-            shapefname  = '/projects/life9360/AKgeol_web_shp/AKStategeolarc_generalized_WGS84'
-            m.readshapefile(shapefname, 'geolarc', linewidth=1, color='blue')
-        inet    = 0
+        shapefname  = '/home/leon/geological_maps/qfaults'
+        m.readshapefile(shapefname, 'faultline', linewidth=2, color='red')
+        shapefname  = '/home/leon/AKgeol_web_shp/AKStategeolarc_generalized_WGS84'
+        m.readshapefile(shapefname, 'geolarc', linewidth=1, color='red')
+        inet        = 0
         for network in inv:
             stalons     = np.array([])
             stalats     = np.array([])
             inet        += 1
             for station in network:
                 if stacode != None:
-                    if station.code != stacode: continue
-                stalons         = np.append(stalons, station.longitude)
-                stalats         = np.append(stalats, station.latitude)
+                    if station.code != stacode:
+                        continue
+                if station.code == 'DHY':
+                
+                    stalons         = np.append(stalons, station.longitude)
+                    stalats         = np.append(stalats, station.latitude)
             stax, stay      = m(stalons, stalats)
             # if inet == 1:
             #     m.plot(stax, stay, 'r^', mec='k', markersize=10, label = network.code)
             # if inet == 2:
             #     m.plot(stax, stay, 'b^', mec='k', markersize=10, label = network.code)
-            m.plot(stax, stay, 'r^', mec='k', markersize=20, label = network.code+'.'+stacode)
+            # m.plot(stax, stay, 'r^', mec='k', markersize=20, label = network.code+'.'+stacode)
             
+            # m.plot(stax, stay, 'r^', markersize=15)
             # if inet<=10:
             #     m.plot(stax, stay, '^', mec='k', markersize=10, label = network.code)
             # elif inet > 10 and inet <=20:
             #     m.plot(stax, stay, 's', mec='k', markersize=10, label = network.code)
             # elif inet > 20:
             #     m.plot(stax, stay, 'v', mec='k', markersize=10, label = network.code)
-        # plt.title(str(self.period)+' sec', fontsize=20)
-        # plt.legend(numpoints=1)
+            xc, yc      = m(np.array([-153]), np.array([67.5]))
+            m.plot(xc, yc,'*', ms = 15, markeredgecolor='black', markerfacecolor='yellow')
+            xc, yc      = m(np.array([-150]), np.array([65]))
+            m.plot(xc, yc,'*', ms = 15, markeredgecolor='black', markerfacecolor='yellow')
+            xc, yc      = m(np.array([-149]), np.array([62]))
+            m.plot(xc, yc,'*', ms = 15, markeredgecolor='black', markerfacecolor='yellow')
+            
+        # plt.legend(numpoints=1, loc=2, fontsize=13)
         if showfig:
             plt.show()
         return
