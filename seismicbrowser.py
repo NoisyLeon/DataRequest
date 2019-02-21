@@ -10,7 +10,25 @@ import numpy as np
 
 mondict = {1: 'JAN', 2: 'FEB', 3: 'MAR', 4: 'APR', 5: 'MAY', 6: 'JUN', 7: 'JUL', 8: 'AUG', 9: 'SEP', 10: 'OCT', 11: 'NOV', 12: 'DEC'}
 
-
+def plot_fault_lines(mapobj, infname, lw=2, color='red'):
+    with open(infname, 'rb') as fio:
+        is_new  = False
+        lonlst  = []
+        latlst  = []
+        for line in fio.readlines():
+            if line.split()[0] == '>':
+                x, y  = mapobj(lonlst, latlst)
+                mapobj.plot(x, y,  lw = lw, color=color)
+                # # # m.plot(xslb, yslb,  lw = 3, color='white')
+                lonlst  = []
+                latlst  = []
+                continue
+            lonlst.append(float(line.split()[0]))
+            latlst.append(float(line.split()[1]))
+        x, y  = mapobj(lonlst, latlst)
+        mapobj.plot(x, y,  lw = lw, color=color)
+            
+    
 
 class browseASDF(pyasdf.ASDFDataSet):
     
@@ -229,10 +247,14 @@ class browseASDF(pyasdf.ASDFDataSet):
             m.drawparallels(np.arange(-80.0,80.0,10.0), labels=[1,0,0,0],  linewidth=2,  fontsize=20)
             m.drawmeridians(np.arange(-170.0,170.0,10.0),  linewidth=2)
         elif projection=='lambert':
-            distEW, az, baz = obspy.geodetics.gps2dist_azimuth(minlat, minlon, minlat, maxlon) # distance is in m
-            distNS, az, baz = obspy.geodetics.gps2dist_azimuth(minlat, minlon, maxlat+2., minlon) # distance is in m
-            m               = Basemap(width = distEW, height=distNS, rsphere=(6378137.00,6356752.3142), resolution='l', projection='lcc',\
-                                lat_1=minlat, lat_2=maxlat, lon_0=lon_centre, lat_0=lat_centre+1)
+            distEW, az, baz = obspy.geodetics.gps2dist_azimuth((lat_centre+minlat)/2., minlon, (lat_centre+minlat)/2., maxlon) # distance is in m
+            distNS, az, baz = obspy.geodetics.gps2dist_azimuth(minlat, minlon, maxlat-2, minlon) # distance is in m
+            m       = Basemap(width=distEW, height=distNS, rsphere=(6378137.00,6356752.3142), resolution='h', projection='lcc',\
+                        lat_1=minlat, lat_2=maxlat, lon_0=lon_centre, lat_0=lat_centre+1.5)
+            # distEW, az, baz = obspy.geodetics.gps2dist_azimuth(minlat, minlon, minlat, maxlon) # distance is in m
+            # distNS, az, baz = obspy.geodetics.gps2dist_azimuth(minlat, minlon, maxlat+2., minlon) # distance is in m
+            # m               = Basemap(width = distEW, height=distNS, rsphere=(6378137.00,6356752.3142), resolution='l', projection='lcc',\
+            #                     lat_1=minlat, lat_2=maxlat, lon_0=lon_centre, lat_0=lat_centre+1)
             m.drawparallels(np.arange(-80.0,80.0,10.0), linewidth=1, dashes=[2,2], labels=[1,1,0,0], fontsize=15)
             m.drawmeridians(np.arange(-170.0,170.0,10.0), linewidth=1, dashes=[2,2], labels=[0,0,1,1], fontsize=15)
         m.drawcoastlines(linewidth=1.0)
@@ -274,7 +296,8 @@ class browseASDF(pyasdf.ASDFDataSet):
             plt.show()
         return
     
-    def plot_inv(self, projection='lambert', geopolygons=None, showfig=True, blon=1, blat=1, plotetopo=True, stacode=None):
+    def plot_inv(self, projection='lambert', geopolygons=None, showfig=True, blon=1, blat=1, \
+                 netcodelist=[], plotetopo=True, stacode=None):
         """Plot station map
         ==============================================================================
         Input Parameters:
@@ -284,7 +307,7 @@ class browseASDF(pyasdf.ASDFDataSet):
         showfig         - show figure or not
         ==============================================================================
         """
-        inv     = self.inv
+        # inv     = self.inv
         m       = self._get_basemap(projection=projection, geopolygons=geopolygons, blon=blon, blat=blat)
         if plotetopo:
             from netCDF4 import Dataset
@@ -306,45 +329,63 @@ class browseASDF(pyasdf.ASDFDataSet):
             mycm2.set_over('w',0)
             m.imshow(ls.shade(topodat, cmap=mycm1, vert_exag=1., dx=1., dy=1., vmin=0, vmax=8000))
             m.imshow(ls.shade(topodat, cmap=mycm2, vert_exag=1., dx=1., dy=1., vmin=-11000, vmax=-0.5))
-        shapefname  = '/home/leon/geological_maps/qfaults'
-        m.readshapefile(shapefname, 'faultline', linewidth=2, color='red')
-        shapefname  = '/home/leon/AKgeol_web_shp/AKStategeolarc_generalized_WGS84'
-        m.readshapefile(shapefname, 'geolarc', linewidth=1, color='red')
-        inet        = 0
-        for network in inv:
-            stalons     = np.array([])
-            stalats     = np.array([])
-            inet        += 1
-            for station in network:
-                if stacode != None:
-                    if station.code != stacode:
-                        continue
-                if station.code == 'DHY':
-                
-                    stalons         = np.append(stalons, station.longitude)
-                    stalats         = np.append(stalats, station.latitude)
-            stax, stay      = m(stalons, stalats)
-            # if inet == 1:
-            #     m.plot(stax, stay, 'r^', mec='k', markersize=10, label = network.code)
-            # if inet == 2:
-            #     m.plot(stax, stay, 'b^', mec='k', markersize=10, label = network.code)
-            # m.plot(stax, stay, 'r^', mec='k', markersize=20, label = network.code+'.'+stacode)
-            
-            # m.plot(stax, stay, 'r^', markersize=15)
+        
+        # shapefname  = '/home/leon/geological_maps/qfaults'
+        # m.readshapefile(shapefname, 'faultline', linewidth=2, color='red')
+        # shapefname  = '/home/leon/AKgeol_web_shp/AKStategeolarc_generalized_WGS84'
+        # m.readshapefile(shapefname, 'geolarc', linewidth=1, color='red')
+        # inet        = 0
+        # for network in inv:
+        #     stalons     = np.array([])
+        #     stalats     = np.array([])
+        #     if len(netcodelist) != 0:
+        #         if network.code not in netcodelist:
+        #             continue
+        #     inet        += 1
+        #     for station in network:
+        #         # if stacode != None:
+        #         #     if station.code != stacode:
+        #         #         continue
+        #         # if station.code == 'DHY':
+        #         # time            = obspy.UTCDateTime('20150101')
+        #         # if station.end_date < time:
+        #         #     continue
+        #         # time            = obspy.UTCDateTime('20141231')
+        #         # if station.start_date > time:
+        #         #     continue
+        #         stalons         = np.append(stalons, station.longitude)
+        #         stalats         = np.append(stalats, station.latitude)
+        #     stax, stay      = m(stalons, stalats)
+        #     # if inet==1:
+        #     #     m.plot(stax, stay, 'r^', mec='k', markersize=8, label = network.code)
+        #     # if inet == 2:
+        #     #     m.plot(stax, stay, 'b^', mec='k', markersize=8, label = network.code)
+        #     # m.plot(stax, stay, 'r^', mec='k', markersize=20, label = network.code+'.'+stacode)
+        #     
+        #     # m.plot(stax, stay, 'r^', markersize=15)
+        #     labellst    = ['r^', 'b^', 'm^', 'c^', 'w^', \
+        #                    'ro', 'bo', 'mo', 'co',  'wo', \
+        #                       'rv', 'bv', 'mv', 'cv',  'wv', \
+        #                       'rs', 'bs', 'ms', 'cs',  'ws', \
+        #                       'rp', 'bp', 'mp', 'cp',  'wp']
+        #     m.plot(stax, stay, labellst[inet-1], mec='k', markersize=8, label = network.code)
             # if inet<=10:
-            #     m.plot(stax, stay, '^', mec='k', markersize=10, label = network.code)
+            #     m.plot(stax, stay, '^', mec='k', markersize=8, label = network.code)
             # elif inet > 10 and inet <=20:
-            #     m.plot(stax, stay, 's', mec='k', markersize=10, label = network.code)
+            #     m.plot(stax, stay, 's', mec='k', markersize=8, label = network.code)
             # elif inet > 20:
-            #     m.plot(stax, stay, 'v', mec='k', markersize=10, label = network.code)
-            xc, yc      = m(np.array([-153]), np.array([67.5]))
-            m.plot(xc, yc,'*', ms = 15, markeredgecolor='black', markerfacecolor='yellow')
-            xc, yc      = m(np.array([-150]), np.array([65]))
-            m.plot(xc, yc,'*', ms = 15, markeredgecolor='black', markerfacecolor='yellow')
-            xc, yc      = m(np.array([-149]), np.array([62]))
-            m.plot(xc, yc,'*', ms = 15, markeredgecolor='black', markerfacecolor='yellow')
+            #     m.plot(stax, stay, 'v', mec='k', markersize=8, label = network.code)
+            
+            # xc, yc      = m(np.array([-153]), np.array([67.5]))
+            # m.plot(xc, yc,'*', ms = 15, markeredgecolor='black', markerfacecolor='yellow')
+            # xc, yc      = m(np.array([-150]), np.array([65]))
+            # m.plot(xc, yc,'*', ms = 15, markeredgecolor='black', markerfacecolor='yellow')
+            # xc, yc      = m(np.array([-149]), np.array([62]))
+            # m.plot(xc, yc,'*', ms = 15, markeredgecolor='black', markerfacecolor='yellow')
             
         # plt.legend(numpoints=1, loc=2, fontsize=13)
+        
+        plot_fault_lines(m, 'AK_Faults.txt')
         if showfig:
             plt.show()
         return
