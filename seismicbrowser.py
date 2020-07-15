@@ -205,17 +205,8 @@ class browseASDF(pyasdf.ASDFDataSet):
                                     minlongitude=minlongitude, maxlongitude=maxlongitude, latitude=latitude, longitude=longitude, minradius=minradius, \
                                         maxradius=maxradius, level='channel', includerestricted=includerestricted)
                 except:
-                    # for i in range(10):
-                    #     try:
-                    #         inv += client.get_stations(network=network, station=station, starttime=starttime, endtime=endtime, startbefore=startbefore, startafter=startafter,\
-                    #             endbefore=endbefore, endafter=endafter, channel=channel, minlatitude=minlatitude, maxlatitude=maxlatitude, \
-                    #                 minlongitude=minlongitude, maxlongitude=maxlongitude, latitude=latitude, longitude=longitude, minradius=minradius, \
-                    #                     maxradius=maxradius, level='channel', includerestricted=includerestricted)
-                    #     except:
                     print ('No station inv: ', line)
                     continue
-                    # if i >= 9:
-                        # print 'No station inv: ', line
         self.add_stationxml(inv)
         try:
             self.inv    += inv
